@@ -9,7 +9,7 @@
         <version>9</version>
     </parent>
 
-    <groupId>com.github.davidmoten</groupId>
+    <groupId>de.rkraneis</groupId>
     <artifactId>rtree</artifactId>
     <version>0.5.5-SNAPSHOT</version>
 
@@ -17,7 +17,7 @@
     <description>Java implementation of an immutable in-memory R-Tree for spatial indexing</description>
     <packaging>jar</packaging>
 
-    <url>http://github.com/davidmoten/rtree</url>
+    <url>http://github.com/rkraneis/rtree</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -51,14 +51,9 @@
         </license>
     </licenses>
 
-    <ciManagement>
-        <system>CloudBees</system>
-        <url>https://xuml-tools.ci.cloudbees.com</url>
-    </ciManagement>
-
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/davidmoten/rtree/issues</url>
+        <url>https://github.com/rkraneis/rtree/issues</url>
     </issueManagement>
 
     <inceptionYear>2013</inceptionYear>
@@ -73,12 +68,20 @@
             </roles>
             <timezone>+10</timezone>
         </developer>
+        <developer>
+            <id>rene</id>
+            <name>René Kraneis</name>
+            <url>https://github.com/rkraneis/</url>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:davidmoten/rtree.git</connection>
-        <developerConnection>scm:git:git@github.com:davidmoten/rtree.git</developerConnection>
-        <url>scm:git:git@github.com:davidmoten/rtree.git</url>
+        <connection>scm:git:git@github.com:rkraneis/rtree.git</connection>
+        <developerConnection>scm:git:git@github.com:rkraneis/rtree.git</developerConnection>
+        <url>scm:git:git@github.com:rkraneis/rtree.git</url>
     </scm>
 
     <dependencies>
@@ -202,7 +205,7 @@
                         </executions>
                         <configuration>
                             <classpathScope>test</classpathScope>
-                            <mainClass>com.github.davidmoten.rtree.GalleryMain</mainClass>
+                            <mainClass>de.rkraneis.rtree.GalleryMain</mainClass>
                         </configuration>
                     </plugin>
                 </plugins>
