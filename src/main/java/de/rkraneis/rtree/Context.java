@@ -1,6 +1,6 @@
 package de.rkraneis.rtree;
 
-import com.google.common.base.Preconditions;
+import de.rkraneis.util.Preconditions;
 
 /**
  * Configures an RTree prior to instantiation of an {@link RTree}.

@@ -1,8 +1,7 @@
 package de.rkraneis.util;
 
-import static com.google.common.base.Optional.absent;
-
-import com.google.common.base.Optional;
+import java.util.Optional;
+import static java.util.Optional.empty;
 
 public final class ObjectsHelper {
 
@@ -17,9 +16,9 @@ public final class ObjectsHelper {
     @SuppressWarnings("unchecked")
     public static <T> Optional<T> asClass(Object object, Class<T> cls) {
         if (object == null)
-            return absent();
+            return empty();
         else if (object.getClass() != cls)
-            return absent();
+            return empty();
         else
             return Optional.of((T) object);
     }

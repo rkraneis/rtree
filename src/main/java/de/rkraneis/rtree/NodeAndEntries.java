@@ -1,9 +1,8 @@
 package de.rkraneis.rtree;
 
-import java.util.List;
-
 import de.rkraneis.rtree.geometry.Geometry;
-import com.google.common.base.Optional;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Used for tracking deletions through recursive calls.

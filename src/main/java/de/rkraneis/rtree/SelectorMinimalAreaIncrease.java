@@ -3,11 +3,10 @@ package de.rkraneis.rtree;
 import static de.rkraneis.rtree.Comparators.areaComparator;
 import static de.rkraneis.rtree.Comparators.areaIncreaseComparator;
 import static de.rkraneis.rtree.Comparators.compose;
+import de.rkraneis.rtree.geometry.Geometry;
 import static java.util.Collections.min;
 
 import java.util.List;
-
-import de.rkraneis.rtree.geometry.Geometry;
 
 /**
  * Uses minimal area increase to select a node from a list.

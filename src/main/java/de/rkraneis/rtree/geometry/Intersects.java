@@ -1,25 +1,17 @@
 package de.rkraneis.rtree.geometry;
 
-import rx.functions.Func2;
+import java.util.function.BiPredicate;
 
 public class Intersects {
-    
+
     private Intersects() {
         // prevent instantiation
     }
 
-	public static final Func2<Rectangle, Circle, Boolean> rectangleIntersectsCircle = new Func2<Rectangle, Circle, Boolean>() {
-		@Override
-		public Boolean call(Rectangle rectangle, Circle circle) {
-			return circle.intersects(rectangle);
-		}
-	};
+    public static final BiPredicate<Rectangle, Circle> rectangleIntersectsCircle
+            = (Rectangle rectangle, Circle circle) -> circle.intersects(rectangle);
 
-	public static final Func2<Point, Circle, Boolean> pointIntersectsCircle = new Func2<Point, Circle, Boolean>() {
-		@Override
-		public Boolean call(Point point, Circle circle) {
-			return circle.intersects(point);
-		}
-	};
+    public static final BiPredicate<Point, Circle> pointIntersectsCircle
+            = (Point point, Circle circle) -> circle.intersects(point);
 
 }

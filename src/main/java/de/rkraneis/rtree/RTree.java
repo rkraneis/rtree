@@ -1,22 +1,25 @@
 package de.rkraneis.rtree;
 
-import static de.rkraneis.rtree.geometry.Geometries.rectangle;
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
-
 import java.util.List;
 
-import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
-
+import static de.rkraneis.rtree.geometry.Geometries.rectangle;
 import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.Point;
 import de.rkraneis.rtree.geometry.Rectangle;
-import de.rkraneis.rx.operators.OperatorBoundedPriorityQueue;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.Optional;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleBiFunction;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 /**
  * Immutable in-memory 2D R-Tree with configurable splitter heuristic.
@@ -81,7 +84,7 @@ public final class RTree<T, S extends Geometry> {
      *            specifies parameters and behaviour for the R-tree
      */
     private RTree(Context context) {
-        this(Optional.<Node<T, S>> absent(), 0, context);
+        this(Optional.<Node<T, S>> empty(), 0, context);
     }
 
     /**
@@ -193,8 +196,8 @@ public final class RTree<T, S extends Geometry> {
          * quadratic split and R*-tree split.
          */
         private static final double DEFAULT_FILLING_FACTOR = 0.4;
-        private Optional<Integer> maxChildren = absent();
-        private Optional<Integer> minChildren = absent();
+        private Optional<Integer> maxChildren = empty();
+        private Optional<Integer> minChildren = empty();
         private Splitter splitter = new SplitterQuadratic();
         private Selector selector = new SelectorMinimalAreaIncrease();
         private boolean star = false;
@@ -310,7 +313,7 @@ public final class RTree<T, S extends Geometry> {
             return new RTree<T, S>(node, size + 1, context);
         } else
             return new RTree<T, S>(
-                    new Leaf<T, S>(Lists.newArrayList((Entry<T, S>) entry), context), size + 1,
+                    new Leaf<T, S>(Arrays.asList((Entry<T, S>) entry), context), size + 1,
                     context);
     }
 
@@ -351,14 +354,10 @@ public final class RTree<T, S extends Geometry> {
      *            the entries to add
      * @return a sequence of trees
      */
-    public Observable<RTree<T, S>> add(Observable<Entry<T, S>> entries) {
-        return entries.scan(this, new Func2<RTree<T, S>, Entry<T, S>, RTree<T, S>>() {
-
-            @Override
-            public RTree<T, S> call(RTree<T, S> tree, Entry<T, S> entry) {
-                return tree.add(entry);
-            }
-        });
+    public Stream<RTree<T, S>> add(Stream<Entry<T, S>> entries) {
+        return Stream.concat(Stream.of(this), entries.reduce(Stream.of(this),
+                (stream, entry) -> stream.map(tree -> tree.add(entry)),
+                Stream::concat));
     }
 
     /**
@@ -371,14 +370,10 @@ public final class RTree<T, S extends Geometry> {
      *            if true delete all matching otherwise just first matching
      * @return a sequence of trees
      */
-    public Observable<RTree<T, S>> delete(Observable<Entry<T, S>> entries, final boolean all) {
-        return entries.scan(this, new Func2<RTree<T, S>, Entry<T, S>, RTree<T, S>>() {
-
-            @Override
-            public RTree<T, S> call(RTree<T, S> tree, Entry<T, S> entry) {
-                return tree.delete(entry, all);
-            }
-        });
+    public Stream<RTree<T, S>> delete(Stream<Entry<T, S>> entries, final boolean all) {
+        return Stream.concat(Stream.of(this), entries.reduce(Stream.of(this), 
+                (stream, entry) -> stream.map(tree -> tree.delete(entry)), 
+                Stream::concat));
     }
 
     /**
@@ -512,12 +507,12 @@ public final class RTree<T, S extends Geometry> {
      *            return Entries whose geometry satisfies the given condition
      * @return sequence of matching entries
      */
-    @VisibleForTesting
-    Observable<Entry<T, S>> search(Func1<? super Geometry, Boolean> condition) {
+    //@VisibleForTesting
+    Stream<Entry<T, S>> search(Predicate<? super Geometry> condition) {
         if (root.isPresent())
-            return Observable.create(new OnSubscribeSearch<T, S>(root.get(), condition));
+            return root.get().search(condition);
         else
-            return Observable.empty();
+            return Stream.empty();
     }
 
     /**
@@ -528,25 +523,15 @@ public final class RTree<T, S extends Geometry> {
      *            the rectangle to check intersection with
      * @return whether the geometry and the rectangle intersect
      */
-    public static Func1<Geometry, Boolean> intersects(final Rectangle r) {
-        return new Func1<Geometry, Boolean>() {
-            @Override
-            public Boolean call(Geometry g) {
-                return g.intersects(r);
-            }
-        };
+    public static Predicate<Geometry> intersects(final Rectangle r) {
+        return g -> g.intersects(r);
     }
 
     /**
      * Returns the always true predicate. See {@link RTree#entries()} for
      * example use.
      */
-    private static final Func1<Geometry, Boolean> ALWAYS_TRUE = new Func1<Geometry, Boolean>() {
-        @Override
-        public Boolean call(Geometry rectangle) {
-            return true;
-        }
-    };
+    private static final Predicate<Geometry> ALWAYS_TRUE = rectangle -> true;
 
     /**
      * Returns an {@link Observable} sequence of all {@link Entry}s in the
@@ -557,7 +542,7 @@ public final class RTree<T, S extends Geometry> {
      *            rectangle to check intersection with the entry mbr
      * @return entries that intersect with the rectangle r
      */
-    public Observable<Entry<T, S>> search(final Rectangle r) {
+    public Stream<Entry<T, S>> search(final Rectangle r) {
         return search(intersects(r));
     }
 
@@ -569,7 +554,7 @@ public final class RTree<T, S extends Geometry> {
      *            point to check intersection with the entry mbr
      * @return entries that intersect with the point p
      */
-    public Observable<Entry<T, S>> search(final Point p) {
+    public Stream<Entry<T, S>> search(final Point p) {
         return search(p.mbr());
     }
 
@@ -584,13 +569,8 @@ public final class RTree<T, S extends Geometry> {
      *            entries returned must be within this distance from rectangle r
      * @return the sequence of matching entries
      */
-    public Observable<Entry<T, S>> search(final Rectangle r, final double maxDistance) {
-        return search(new Func1<Geometry, Boolean>() {
-            @Override
-            public Boolean call(Geometry g) {
-                return g.distance(r) < maxDistance;
-            }
-        });
+    public Stream<Entry<T, S>> search(final Rectangle r, final double maxDistance) {
+        return search(g -> g.distance(r) < maxDistance);
     }
 
     /**
@@ -606,14 +586,9 @@ public final class RTree<T, S extends Geometry> {
      *            function to determine if the two geometries intersect
      * @return a sequence of entries that intersect with g
      */
-    public <R extends Geometry> Observable<Entry<T, S>> search(final R g,
-            final Func2<? super S, ? super R, Boolean> intersects) {
-        return search(g.mbr()).filter(new Func1<Entry<T, S>, Boolean>() {
-            @Override
-            public Boolean call(Entry<T, S> entry) {
-                return intersects.call(entry.geometry(), g);
-            }
-        });
+    public <R extends Geometry> Stream<Entry<T, S>> search(final R g,
+            final BiPredicate<? super S, ? super R> intersects) {
+        return search(g.mbr()).filter(entry -> intersects.test(entry.geometry(), g));
     }
 
     /**
@@ -632,22 +607,10 @@ public final class RTree<T, S extends Geometry> {
      *            S and R.
      * @return entries strictly less than maxDistance from g
      */
-    public <R extends Geometry> Observable<Entry<T, S>> search(final R g, final double maxDistance,
-            final Func2<? super S, ? super R, Double> distance) {
-        return search(new Func1<Geometry, Boolean>() {
-            @Override
-            public Boolean call(Geometry entry) {
-                // just use the mbr initially
-                return entry.distance(g.mbr()) < maxDistance;
-            }
-        })
-        // refine with distance function
-        .filter(new Func1<Entry<T, S>, Boolean>() {
-            @Override
-            public Boolean call(Entry<T, S> entry) {
-                return distance.call(entry.geometry(), g) < maxDistance;
-            }
-        });
+    public <R extends Geometry> Stream<Entry<T, S>> search(final R g, final double maxDistance,
+            final ToDoubleBiFunction<? super S, ? super R> distance) {
+        return search(entry -> entry.distance(g.mbr()) < maxDistance)// just use the mbr initially
+        .filter(entry -> distance.applyAsDouble(entry.geometry(), g) < maxDistance);// refine with distance function
     }
 
     /**
@@ -661,7 +624,7 @@ public final class RTree<T, S extends Geometry> {
      *            entries returned must be within this distance from point p
      * @return the sequence of matching entries
      */
-    public Observable<Entry<T, S>> search(final Point p, final double maxDistance) {
+    public Stream<Entry<T, S>> search(final Point p, final double maxDistance) {
         return search(p.mbr(), maxDistance);
     }
 
@@ -678,10 +641,10 @@ public final class RTree<T, S extends Geometry> {
      *            max number of entries to return
      * @return nearest entries to maxCount, not in any particular order
      */
-    public Observable<Entry<T, S>> nearest(final Rectangle r, final double maxDistance, int maxCount) {
-        return search(r, maxDistance).lift(
-                new OperatorBoundedPriorityQueue<Entry<T, S>>(maxCount, Comparators
-                        .<T, S> ascendingDistance(r)));
+    public Stream<Entry<T, S>> nearest(final Rectangle r, final double maxDistance, int maxCount) {
+        return search(r, maxDistance)
+                .sorted(Comparators.<T, S> ascendingDistance(r))
+                .limit(maxCount);
     }
 
     /**
@@ -696,7 +659,7 @@ public final class RTree<T, S extends Geometry> {
      *            max number of entries to return
      * @return nearest entries to maxCount, not in any particular order
      */
-    public Observable<Entry<T, S>> nearest(final Point p, final double maxDistance, int maxCount) {
+    public Stream<Entry<T, S>> nearest(final Point p, final double maxDistance, int maxCount) {
         return nearest(p.mbr(), maxDistance, maxCount);
     }
 
@@ -705,7 +668,7 @@ public final class RTree<T, S extends Geometry> {
      * 
      * @return all entries in the R-tree
      */
-    public Observable<Entry<T, S>> entries() {
+    public Stream<Entry<T, S>> entries() {
         return search(ALWAYS_TRUE);
     }
 
@@ -746,17 +709,9 @@ public final class RTree<T, S extends Geometry> {
     private Rectangle calculateMaxView(RTree<T, S> tree) {
         return tree
                 .entries()
-                .reduce(Optional.<Rectangle> absent(),
-                        new Func2<Optional<Rectangle>, Entry<T, S>, Optional<Rectangle>>() {
-
-                            @Override
-                            public Optional<Rectangle> call(Optional<Rectangle> r, Entry<T, S> entry) {
-                                if (r.isPresent())
-                                    return of(r.get().add(entry.geometry().mbr()));
-                                else
-                                    return of(entry.geometry().mbr());
-                            }
-                        }).toBlocking().single().or(rectangle(0, 0, 0, 0));
+                .map(e -> e.geometry().mbr())
+                .reduce((r1, r2) -> r1.add(r2))
+                .orElse(rectangle(0, 0, 0, 0));
     }
 
     Optional<? extends Node<T, S>> root() {

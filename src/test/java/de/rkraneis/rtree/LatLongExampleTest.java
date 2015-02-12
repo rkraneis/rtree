@@ -6,13 +6,13 @@ import java.util.List;
 
 import org.junit.Test;
 
-import rx.Observable;
-import rx.functions.Func1;
-
 import com.github.davidmoten.grumpy.core.Position;
 import de.rkraneis.rtree.geometry.Geometries;
 import de.rkraneis.rtree.geometry.Point;
 import de.rkraneis.rtree.geometry.Rectangle;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LatLongExampleTest {
 
@@ -37,14 +37,14 @@ public class LatLongExampleTest {
         final double distanceKm = 300;
         List<Entry<String, Point>> list = search(tree, canberra, distanceKm)
         // get the result
-                .toList().toBlocking().single();
+                .collect(Collectors.toList());
 
         // should have returned Sydney only
         assertEquals(1, list.size());
         assertEquals("Sydney", list.get(0).value());
     }
 
-    public static <T> Observable<Entry<T, Point>> search(RTree<T, Point> tree, Point lonLat,
+    public static <T> Stream<Entry<T, Point>> search(RTree<T, Point> tree, Point lonLat,
             final double distanceKm) {
         // First we need to calculate an enclosing lat long rectangle for this
         // distance then we refine on the exact distance
@@ -55,14 +55,11 @@ public class LatLongExampleTest {
         // do the first search using the bounds
                 .search(bounds)
                 // refine using the exact distance
-                .filter(new Func1<Entry<T, Point>, Boolean>() {
-                    @Override
-                    public Boolean call(Entry<T, Point> entry) {
-                        Point p = entry.geometry();
-                        Position position = Position.create(p.y(), p.x());
-                        return from.getDistanceToKm(position) < distanceKm;
-                    }
-                });
+                .filter((Entry<T, Point> entry) -> {
+                    Point p = entry.geometry();
+                    Position position = Position.create(p.y(), p.x());
+                    return from.getDistanceToKm(position) < distanceKm;
+        });
     }
 
     @Test
@@ -84,17 +81,17 @@ public class LatLongExampleTest {
         final Point location = bungendore;
         String result = tree.search(location)
         // filter on the exact distance from the centre of the GeoCircle
-                .filter(new Func1<Entry<GeoCircleValue<String>, Rectangle>, Boolean>() {
+                .filter(new Predicate<Entry<GeoCircleValue<String>, Rectangle>>() {
                     Position from = Position.create(location.y(), location.x());
 
                     @Override
-                    public Boolean call(Entry<GeoCircleValue<String>, Rectangle> entry) {
+                    public boolean test(Entry<GeoCircleValue<String>, Rectangle> entry) {
                         Position centre = Position.create(entry.value().lat, entry.value().lon);
                         return from.getDistanceToKm(centre) < entry.value().radiusKm;
                     }
                 })
                 // do the search (only expect one value)
-                .toBlocking().single()
+                .findAny().get()
                 // get the name of the GoeCircleValue returned
                 .value().value;
         assertEquals("Canberra", result);

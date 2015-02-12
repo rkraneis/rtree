@@ -1,8 +1,7 @@
 package de.rkraneis.rtree.geometry;
 
-import java.util.List;
-
 import de.rkraneis.rtree.Util;
+import java.util.List;
 
 public class Group<T extends HasGeometry> implements HasGeometry {
 

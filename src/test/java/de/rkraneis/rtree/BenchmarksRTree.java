@@ -8,8 +8,6 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 
-import rx.Subscriber;
-
 import de.rkraneis.rtree.geometry.Geometries;
 import de.rkraneis.rtree.geometry.Point;
 import de.rkraneis.rtree.geometry.Rectangle;
@@ -107,11 +105,6 @@ public class BenchmarksRTree {
     @Benchmark
     public void rStarTreeSearchOfGreekDataPointsMaxChildren010() {
         searchGreek(starTreeM10);
-    }
-
-    @Benchmark
-    public void rStarTreeSearchOfGreekDataPointsMaxChildren010WithBackpressure() {
-        searchGreekWithBackpressure(starTreeM10);
     }
 
     @Benchmark
@@ -245,38 +238,12 @@ public class BenchmarksRTree {
 
     private void search(RTree<Object, Rectangle> tree) {
         // returns 10 results
-        tree.search(Geometries.rectangle(500, 500, 630, 630)).subscribe();
+        tree.search(Geometries.rectangle(500, 500, 630, 630)).count();
     }
 
     private void searchGreek(RTree<Object, Point> tree) {
         // should return 22 results
-        tree.search(Geometries.rectangle(40, 27.0, 40.5, 27.5)).subscribe();
-    }
-
-    private void searchGreekWithBackpressure(RTree<Object, Point> tree) {
-        // should return 22 results
-        tree.search(Geometries.rectangle(40, 27.0, 40.5, 27.5)).subscribe(new Subscriber<Object>() {
-
-            @Override
-            public void onStart() {
-                request(1);
-            }
-
-            @Override
-            public void onCompleted() {
-
-            }
-
-            @Override
-            public void onError(Throwable arg0) {
-
-            }
-
-            @Override
-            public void onNext(Object arg0) {
-                request(1);
-            }
-        });
+        tree.search(Geometries.rectangle(40, 27.0, 40.5, 27.5)).count();
     }
 
     private void insertRectangle(RTree<Object, Rectangle> tree) {

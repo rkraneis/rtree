@@ -1,18 +1,15 @@
 package de.rkraneis.rtree;
 
-import static com.google.common.base.Optional.of;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import rx.Subscriber;
-import rx.functions.Func1;
-
 import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
-import com.google.common.base.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import static java.util.Optional.of;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 final class Leaf<T, S extends Geometry> implements Node<T, S> {
 
@@ -36,20 +33,13 @@ final class Leaf<T, S extends Geometry> implements Node<T, S> {
     }
 
     @Override
-    public void search(Func1<? super Geometry, Boolean> condition,
-            Subscriber<? super Entry<T, S>> subscriber) {
+    public Stream<Entry<T, S>>  search(Predicate<? super Geometry> condition) {
 
-        if (!condition.call(this.geometry().mbr()))
-            return;
-
-        for (final Entry<T, S> entry : entries) {
-            if (subscriber.isUnsubscribed())
-                return;
-            else {
-                if (condition.call(entry.geometry()))
-                    subscriber.onNext(entry);
-            }
-        }
+        if (!condition.test(this.geometry().mbr()))
+            return Stream.empty();
+        
+        return entries.stream()
+                .filter(e -> condition.test(e.geometry()));
     }
 
     @Override
@@ -93,7 +83,7 @@ final class Leaf<T, S extends Geometry> implements Node<T, S> {
                 return new NodeAndEntries<T, S>(of(node), Collections.<Entry<T, S>> emptyList(),
                         numDeleted);
             } else {
-                return new NodeAndEntries<T, S>(Optional.<Node<T, S>> absent(), entries2,
+                return new NodeAndEntries<T, S>(Optional.<Node<T, S>> empty(), entries2,
                         numDeleted);
             }
         }

@@ -1,12 +1,10 @@
 package de.rkraneis.rtree;
 
-import java.util.List;
-
-import rx.functions.Func1;
-
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
+import java.util.List;
+import java.util.function.ToDoubleFunction;
 
 /**
  * Utility functions for making {@link Selector}s and {@link Splitter}s.
@@ -18,40 +16,29 @@ public final class Functions {
         // prevent instantiation
     }
 
-    public static final Func1<ListPair<? extends HasGeometry>, Double> overlapListPair = new Func1<ListPair<? extends HasGeometry>, Double>() {
+    public static final ToDoubleFunction<ListPair<? extends HasGeometry>> overlapListPair =
 
-        @Override
-        public Double call(ListPair<? extends HasGeometry> pair) {
-            return (double) pair.group1().geometry().mbr()
+        pair -> pair.group1().geometry().mbr()
                     .intersectionArea(pair.group2().geometry().mbr());
-        }
-    };
 
-    public static Func1<HasGeometry, Double> overlapArea(final Rectangle r,
+    public static ToDoubleFunction<HasGeometry> overlapArea(final Rectangle r,
             final List<? extends HasGeometry> list) {
-        return new Func1<HasGeometry, Double>() {
-
-            @Override
-            public Double call(HasGeometry g) {
-                Rectangle gPlusR = g.geometry().mbr().add(r);
-                double m = 0;
-                for (HasGeometry other : list) {
-                    if (other != g) {
-                        m += gPlusR.intersectionArea(other.geometry().mbr());
-                    }
+        return g -> {
+            Rectangle gPlusR = g.geometry().mbr().add(r);
+            double m = 0;
+            for (HasGeometry other : list) {
+                if (other != g) {
+                    m += gPlusR.intersectionArea(other.geometry().mbr());
                 }
-                return m;
             }
+            return m;
         };
     }
 
-    public static Func1<HasGeometry, Double> areaIncrease(final Rectangle r) {
-        return new Func1<HasGeometry, Double>() {
-            @Override
-            public Double call(HasGeometry g) {
-                Rectangle gPlusR = g.geometry().mbr().add(r);
-                return (double) (gPlusR.area() - g.geometry().mbr().area());
-            }
+    public static ToDoubleFunction<HasGeometry> areaIncrease(final Rectangle r) {
+        return g -> {
+            Rectangle gPlusR = g.geometry().mbr().add(r);
+            return (double) (gPlusR.area() - g.geometry().mbr().area());
         };
     }
 

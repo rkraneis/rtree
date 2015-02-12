@@ -1,8 +1,7 @@
 package de.rkraneis.rtree;
 
-import java.util.List;
-
 import de.rkraneis.rtree.geometry.Geometry;
+import java.util.List;
 
 /**
  * The heuristic used on insert to select which node to add an Entry to.

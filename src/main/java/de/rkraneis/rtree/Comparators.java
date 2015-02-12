@@ -1,14 +1,13 @@
 package de.rkraneis.rtree;
 
-import java.util.Comparator;
-import java.util.List;
-
-import rx.functions.Func1;
-
 import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 
 /**
  * Utility functions asociated with {@link Comparator}s, especially for use with
@@ -69,12 +68,22 @@ public final class Comparators {
         };
     }
 
-    public static <R, T extends Comparable<T>> Comparator<R> toComparator(final Func1<R, T> function) {
+    public static <R, T extends Comparable<T>> Comparator<R> toComparator(final Function<R, T> function) {
         return new Comparator<R>() {
 
             @Override
             public int compare(R g1, R g2) {
-                return function.call(g1).compareTo(function.call(g2));
+                return function.apply(g1).compareTo(function.apply(g2));
+            }
+        };
+    }
+    
+    public static <R, T extends Comparable<Double>> Comparator<R> toComparator(final ToDoubleFunction<R> function) {
+        return new Comparator<R>() {
+
+            @Override
+            public int compare(R g1, R g2) {
+                return Double.compare(function.applyAsDouble(g1), function.applyAsDouble(g2));
             }
         };
     }

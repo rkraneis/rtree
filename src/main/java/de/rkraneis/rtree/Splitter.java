@@ -1,9 +1,8 @@
 package de.rkraneis.rtree;
 
-import java.util.List;
-
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
+import java.util.List;
 
 public interface Splitter {
 

@@ -1,9 +1,9 @@
 package de.rkraneis.rtree.geometry;
 
 import de.rkraneis.util.ObjectsHelper;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import de.rkraneis.util.Preconditions;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class Rectangle implements Geometry, HasGeometry {
     private final float x1, y1, x2, y2;
@@ -98,15 +98,15 @@ public final class Rectangle implements Geometry, HasGeometry {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(x1, y1, x2, y2);
+        return Objects.hash(x1, y1, x2, y2);
     }
 
     @Override
     public boolean equals(Object obj) {
         Optional<Rectangle> other = ObjectsHelper.asClass(obj, Rectangle.class);
         if (other.isPresent()) {
-            return Objects.equal(x1, other.get().x1) && Objects.equal(x2, other.get().x2)
-                    && Objects.equal(y1, other.get().y1) && Objects.equal(y2, other.get().y2);
+            return Objects.equals(x1, other.get().x1) && Objects.equals(x2, other.get().x2)
+                    && Objects.equals(y1, other.get().y1) && Objects.equals(y2, other.get().y2);
         } else
             return false;
     }

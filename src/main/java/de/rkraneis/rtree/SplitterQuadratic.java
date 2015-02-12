@@ -1,19 +1,17 @@
 package de.rkraneis.rtree;
 
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
 import de.rkraneis.util.Pair;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import de.rkraneis.util.Preconditions;
+import java.util.ArrayList;
+import java.util.Arrays;
+import static java.util.Arrays.asList;
+import java.util.List;
+import java.util.Optional;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 public final class SplitterQuadratic implements Splitter {
 
@@ -32,8 +30,8 @@ public final class SplitterQuadratic implements Splitter {
         // worst combination to have in the same node is now e1,e2.
 
         // establish a group around e1 and another group around e2
-        final List<T> group1 = Lists.newArrayList(worstCombination.value1());
-        final List<T> group2 = Lists.newArrayList(worstCombination.value2());
+        final List<T> group1 = new ArrayList(asList(worstCombination.value1()));
+        final List<T> group2 = new ArrayList(asList(worstCombination.value2()));
 
         final List<T> remaining = new ArrayList<T>(items);
         remaining.remove(worstCombination.value1());
@@ -68,11 +66,11 @@ public final class SplitterQuadratic implements Splitter {
         }
     }
 
-    @VisibleForTesting
+    //@VisibleForTesting
     static <T extends HasGeometry> T getBestCandidateForGroup(List<T> list, List<T> group,
             Rectangle groupMbr) {
-        Optional<T> minEntry = absent();
-        Optional<Double> minArea = absent();
+        Optional<T> minEntry = empty();
+        Optional<Double> minArea = empty();
         for (final T entry : list) {
             final double area = groupMbr.add(entry.geometry().mbr()).area();
             if (!minArea.isPresent() || area < minArea.get()) {
@@ -83,12 +81,12 @@ public final class SplitterQuadratic implements Splitter {
         return minEntry.get();
     }
 
-    @VisibleForTesting
+    //@VisibleForTesting
     static <T extends HasGeometry> Pair<T> worstCombination(List<T> items) {
-        Optional<T> e1 = absent();
-        Optional<T> e2 = absent();
+        Optional<T> e1 = empty();
+        Optional<T> e2 = empty();
         {
-            Optional<Double> maxArea = absent();
+            Optional<Double> maxArea = empty();
             for (final T entry1 : items) {
                 for (final T entry2 : items) {
                     if (entry1 != entry2) {

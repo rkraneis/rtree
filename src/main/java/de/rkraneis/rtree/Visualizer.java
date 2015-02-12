@@ -1,5 +1,7 @@
 package de.rkraneis.rtree;
 
+import de.rkraneis.rtree.geometry.Geometry;
+import de.rkraneis.rtree.geometry.Rectangle;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -10,10 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import de.rkraneis.rtree.geometry.Geometry;
-import de.rkraneis.rtree.geometry.Rectangle;
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 public final class Visualizer {
 

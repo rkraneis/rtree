@@ -1,5 +1,8 @@
 package de.rkraneis.rtree;
 
+import de.rkraneis.rtree.geometry.HasGeometry;
+import de.rkraneis.rtree.geometry.ListPair;
+import de.rkraneis.util.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,12 +10,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import rx.functions.Func1;
-
-import de.rkraneis.rtree.geometry.HasGeometry;
-import de.rkraneis.rtree.geometry.ListPair;
-import com.google.common.base.Preconditions;
+import java.util.function.ToDoubleFunction;
 
 public final class SplitterRStar implements Splitter {
 
@@ -54,12 +52,8 @@ public final class SplitterRStar implements Splitter {
 
     private static <T extends HasGeometry> Comparator<SortType> marginSumComparator(
             final Map<SortType, List<ListPair<T>>> map) {
-        return Comparators.toComparator(new Func1<SortType, Double>() {
-            @Override
-            public Double call(SortType sortType) {
-                return (double) marginValueSum(map.get(sortType));
-            }
-        });
+        return Comparators.toComparator(
+                (SortType sortType) -> marginValueSum(map.get(sortType)));
     }
 
     private static <T extends HasGeometry> float marginValueSum(List<ListPair<T>> list) {

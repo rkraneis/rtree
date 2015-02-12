@@ -1,8 +1,9 @@
 package de.rkraneis.rtree.geometry;
 
 import de.rkraneis.util.ObjectsHelper;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
+import java.util.Objects;
+import java.util.Optional;
+
 
 public final class Point implements Geometry {
 
@@ -58,7 +59,7 @@ public final class Point implements Geometry {
     public boolean equals(Object obj) {
         Optional<Point> other = ObjectsHelper.asClass(obj, Point.class);
         if (other.isPresent()) {
-            return Objects.equal(mbr, other.get().mbr());
+            return Objects.equals(mbr, other.get().mbr());
         } else
             return false;
     }

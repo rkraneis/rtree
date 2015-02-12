@@ -1,12 +1,11 @@
 package de.rkraneis.rtree;
 
+import de.rkraneis.rtree.geometry.HasGeometry;
+import de.rkraneis.rtree.geometry.Rectangle;
+import de.rkraneis.util.Preconditions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import de.rkraneis.rtree.geometry.HasGeometry;
-import de.rkraneis.rtree.geometry.Rectangle;
-import com.google.common.base.Preconditions;
 
 /**
  * @author dxm

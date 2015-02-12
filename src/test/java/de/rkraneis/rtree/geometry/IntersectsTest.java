@@ -18,12 +18,12 @@ public class IntersectsTest {
     
     @Test
     public void testRectangleIntersectsCircle() {
-        assertTrue(Intersects.rectangleIntersectsCircle.call(rectangle(0, 0, 0, 0), circle(0, 0, 1)));
+        assertTrue(Intersects.rectangleIntersectsCircle.test(rectangle(0, 0, 0, 0), circle(0, 0, 1)));
     }
     
     @Test
     public void testRectangleDoesNotIntersectCircle() {
-        assertFalse(Intersects.rectangleIntersectsCircle.call(rectangle(0, 0, 0, 0), circle(100, 100, 1)));
+        assertFalse(Intersects.rectangleIntersectsCircle.test(rectangle(0, 0, 0, 0), circle(100, 100, 1)));
     }
     
 }

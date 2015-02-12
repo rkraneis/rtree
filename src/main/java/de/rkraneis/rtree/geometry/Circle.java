@@ -1,8 +1,8 @@
 package de.rkraneis.rtree.geometry;
 
 import de.rkraneis.util.ObjectsHelper;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class Circle implements Geometry {
 
@@ -50,15 +50,15 @@ public final class Circle implements Geometry {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(x, y, radius);
+        return Objects.hash(x, y, radius);
     }
 
     @Override
     public boolean equals(Object obj) {
         Optional<Circle> other = ObjectsHelper.asClass(obj, Circle.class);
         if (other.isPresent()) {
-            return Objects.equal(x, other.get().x) && Objects.equal(y, other.get().y)
-                    && Objects.equal(radius, other.get().radius);
+            return Objects.equals(x, other.get().x) && Objects.equals(y, other.get().y)
+                    && Objects.equals(radius, other.get().radius);
         } else
             return false;
     }

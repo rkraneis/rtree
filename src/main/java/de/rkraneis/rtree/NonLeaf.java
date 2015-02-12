@@ -1,19 +1,17 @@
 package de.rkraneis.rtree;
 
-import static com.google.common.base.Optional.of;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import rx.Subscriber;
-import rx.functions.Func1;
 
 import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import de.rkraneis.util.Preconditions;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import static java.util.Optional.of;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
 
@@ -34,18 +32,12 @@ final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
     }
 
     @Override
-    public void search(Func1<? super Geometry, Boolean> criterion,
-            Subscriber<? super Entry<T, S>> subscriber) {
+    public Stream<Entry<T, S>> search(Predicate<? super Geometry> criterion) {
 
-        if (!criterion.call(this.geometry().mbr()))
-            return;
+        if (!criterion.test(this.geometry().mbr()))
+            return Stream.empty();
 
-        for (final Node<T, S> child : children) {
-            if (subscriber.isUnsubscribed())
-                return;
-            else
-                child.search(criterion, subscriber);
-        }
+        return children.stream().flatMap(c -> c.search(criterion));
     }
 
     @Override
@@ -125,7 +117,7 @@ final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
             List<Node<T, S>> nodes = Util.remove(children, removeTheseNodes);
             nodes.addAll(addTheseNodes);
             if (nodes.size() == 0)
-                return new NodeAndEntries<T, S>(Optional.<Node<T, S>> absent(), addTheseEntries,
+                return new NodeAndEntries<T, S>(Optional.<Node<T, S>> empty(), addTheseEntries,
                         countDeleted);
             else {
                 NonLeaf<T, S> node = new NonLeaf<T, S>(nodes, context);

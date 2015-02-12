@@ -1,8 +1,7 @@
 package de.rkraneis.rtree;
 
-import java.util.List;
-
 import de.rkraneis.rtree.geometry.Geometry;
+import java.util.List;
 
 /**
  * Uses minimal overlap area selector for leaf nodes and minimal areea increase

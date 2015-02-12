@@ -3,9 +3,9 @@ package de.rkraneis.rtree;
 import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.util.ObjectsHelper;
-import com.google.common.base.Objects;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import de.rkraneis.util.Preconditions;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An entry in the R-tree which has a spatial representation.
@@ -75,7 +75,7 @@ public final class Entry<T, S extends Geometry> implements HasGeometry {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(value, geometry);
+        return Objects.hash(value, geometry);
     }
 
     @Override
@@ -83,8 +83,8 @@ public final class Entry<T, S extends Geometry> implements HasGeometry {
         @SuppressWarnings("rawtypes")
         Optional<Entry> other = ObjectsHelper.asClass(obj, Entry.class);
         if (other.isPresent()) {
-            return Objects.equal(value, other.get().value)
-                    && Objects.equal(geometry, other.get().geometry);
+            return Objects.equals(value, other.get().value)
+                    && Objects.equals(geometry, other.get().geometry);
         } else
             return false;
     }
