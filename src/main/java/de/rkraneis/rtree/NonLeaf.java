@@ -55,7 +55,7 @@ final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
         List<Node<T, S>> list = child.add(entry);
         List<? extends Node<T, S>> children2 = Util.replace(children, child, list);
         if (children2.size() <= context.maxChildren())
-            return Collections.singletonList((Node<T, S>) new NonLeaf<T, S>(children2, context));
+            return Collections.singletonList((Node<T, S>) new NonLeaf<>(children2, context));
         else {
             ListPair<? extends Node<T, S>> pair = context.splitter().split(children2,
                     context.minChildren());
@@ -64,9 +64,9 @@ final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
     }
 
     private List<Node<T, S>> makeNonLeaves(ListPair<? extends Node<T, S>> pair) {
-        List<Node<T, S>> list = new ArrayList<Node<T, S>>();
-        list.add(new NonLeaf<T, S>(pair.group1().list(), context));
-        list.add(new NonLeaf<T, S>(pair.group2().list(), context));
+        List<Node<T, S>> list = new ArrayList<>();
+        list.add(new NonLeaf<>(pair.group1().list(), context));
+        list.add(new NonLeaf<>(pair.group2().list(), context));
         return list;
     }
 
@@ -80,9 +80,9 @@ final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
         // zero or more nodes to be added as children to this node(because
         // entries have been deleted from them and they still have enough
         // members to be active)
-        List<Entry<T, S>> addTheseEntries = new ArrayList<Entry<T, S>>();
-        List<Node<T, S>> removeTheseNodes = new ArrayList<Node<T, S>>();
-        List<Node<T, S>> addTheseNodes = new ArrayList<Node<T, S>>();
+        List<Entry<T, S>> addTheseEntries = new ArrayList<>();
+        List<Node<T, S>> removeTheseNodes = new ArrayList<>();
+        List<Node<T, S>> addTheseNodes = new ArrayList<>();
         int countDeleted = 0;
 
         for (final Node<T, S> child : children) {
@@ -112,16 +112,16 @@ final class NonLeaf<T, S extends Geometry> implements Node<T, S> {
             }
         }
         if (removeTheseNodes.isEmpty())
-            return new NodeAndEntries<T, S>(of(this), Collections.<Entry<T, S>> emptyList(), 0);
+            return new NodeAndEntries<>(of(this), Collections.<Entry<T, S>> emptyList(), 0);
         else {
             List<Node<T, S>> nodes = Util.remove(children, removeTheseNodes);
             nodes.addAll(addTheseNodes);
-            if (nodes.size() == 0)
-                return new NodeAndEntries<T, S>(Optional.<Node<T, S>> empty(), addTheseEntries,
+            if (nodes.isEmpty())
+                return new NodeAndEntries<>(Optional.<Node<T, S>> empty(), addTheseEntries,
                         countDeleted);
             else {
-                NonLeaf<T, S> node = new NonLeaf<T, S>(nodes, context);
-                return new NodeAndEntries<T, S>(of(node), addTheseEntries, countDeleted);
+                NonLeaf<T, S> node = new NonLeaf<>(nodes, context);
+                return new NodeAndEntries<>(of(node), addTheseEntries, countDeleted);
             }
         }
     }

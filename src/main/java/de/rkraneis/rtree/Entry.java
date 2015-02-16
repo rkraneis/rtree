@@ -45,7 +45,7 @@ public final class Entry<T, S extends Geometry> implements HasGeometry {
      * @return entry wrapping value and associated geometry
      */
     public static <T, S extends Geometry> Entry<T, S> entry(T value, S geometry) {
-        return new Entry<T, S>(value, geometry);
+        return new Entry<>(value, geometry);
     }
 
     /**
@@ -82,11 +82,9 @@ public final class Entry<T, S extends Geometry> implements HasGeometry {
     public boolean equals(Object obj) {
         @SuppressWarnings("rawtypes")
         Optional<Entry> other = ObjectsHelper.asClass(obj, Entry.class);
-        if (other.isPresent()) {
-            return Objects.equals(value, other.get().value)
-                    && Objects.equals(geometry, other.get().geometry);
-        } else
-            return false;
+        return other.map(entry -> Objects.equals(value, entry.value)
+                && Objects.equals(geometry, entry.geometry))
+                .orElse(false);
     }
 
 }

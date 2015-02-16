@@ -52,7 +52,7 @@ final class Leaf<T, S extends Geometry> implements Node<T, S> {
         @SuppressWarnings("unchecked")
         final List<Entry<T, S>> entries2 = Util.add(entries, (Entry<T, S>) entry);
         if (entries2.size() <= context.maxChildren())
-            return Collections.singletonList((Node<T, S>) new Leaf<T, S>(entries2, context));
+            return Collections.singletonList((Node<T, S>) new Leaf<>(entries2, context));
         else {
             ListPair<Entry<T, S>> pair = context.splitter().split(entries2, context.minChildren());
             return makeLeaves(pair);
@@ -60,18 +60,18 @@ final class Leaf<T, S extends Geometry> implements Node<T, S> {
     }
 
     private List<Node<T, S>> makeLeaves(ListPair<Entry<T, S>> pair) {
-        List<Node<T, S>> list = new ArrayList<Node<T, S>>();
-        list.add(new Leaf<T, S>(pair.group1().list(), context));
-        list.add(new Leaf<T, S>(pair.group2().list(), context));
+        List<Node<T, S>> list = new ArrayList<>();
+        list.add(new Leaf<>(pair.group1().list(), context));
+        list.add(new Leaf<>(pair.group2().list(), context));
         return list;
     }
 
     @Override
     public NodeAndEntries<T, S> delete(Entry<? extends T, ? extends S> entry, boolean all) {
         if (!entries.contains(entry)) {
-            return new NodeAndEntries<T, S>(of(this), Collections.<Entry<T, S>> emptyList(), 0);
+            return new NodeAndEntries<>(of(this), Collections.<Entry<T, S>> emptyList(), 0);
         } else {
-            final List<Entry<T, S>> entries2 = new ArrayList<Entry<T, S>>(entries);
+            final List<Entry<T, S>> entries2 = new ArrayList<>(entries);
             entries2.remove(entry);
             int numDeleted = 1;
             // keep deleting if all specified
@@ -79,11 +79,11 @@ final class Leaf<T, S extends Geometry> implements Node<T, S> {
                 numDeleted += 1;
 
             if (entries2.size() >= context.minChildren()) {
-                Leaf<T, S> node = new Leaf<T, S>(entries2, context);
-                return new NodeAndEntries<T, S>(of(node), Collections.<Entry<T, S>> emptyList(),
+                Leaf<T, S> node = new Leaf<>(entries2, context);
+                return new NodeAndEntries<>(of(node), Collections.<Entry<T, S>> emptyList(),
                         numDeleted);
             } else {
-                return new NodeAndEntries<T, S>(Optional.<Node<T, S>> empty(), entries2,
+                return new NodeAndEntries<>(Optional.<Node<T, S>> empty(), entries2,
                         numDeleted);
             }
         }

@@ -8,9 +8,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import static java.lang.Integer.compare;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,30 +60,24 @@ public final class Visualizer {
 
     private <T, S extends Geometry> List<RectangleDepth> getNodeDepthsSortedByDepth(Node<T, S> root) {
         final List<RectangleDepth> list = getRectangleDepths(root, 0);
-        Collections.sort(list, new Comparator<RectangleDepth>() {
-
-            @Override
-            public int compare(RectangleDepth n1, RectangleDepth n2) {
-                return ((Integer) n1.getDepth()).compareTo(n2.getDepth());
-            }
-        });
+        Collections.sort(list, (n1, n2) -> compare(n1.getDepth(), n2.getDepth()));
         return list;
     }
 
     private <T, S extends Geometry> List<RectangleDepth> getRectangleDepths(Node<T, S> node,
             int depth) {
-        final List<RectangleDepth> list = new ArrayList<RectangleDepth>();
+        final List<RectangleDepth> list = new ArrayList<>();
         list.add(new RectangleDepth(node.geometry().mbr(), depth));
         if (node instanceof Leaf) {
             final Leaf<T, S> leaf = (Leaf<T, S>) node;
-            for (final Entry<T, S> entry : leaf.entries()) {
-                list.add(new RectangleDepth(entry.geometry().mbr(), depth + 2));
-            }
+            leaf.entries().stream()
+                    .map(entry -> new RectangleDepth(entry.geometry().mbr(), depth + 2))
+                    .forEach(list::add);
         } else {
             final NonLeaf<T, S> n = (NonLeaf<T, S>) node;
-            for (final Node<T, S> child : n.children()) {
-                list.addAll(getRectangleDepths(child, depth + 1));
-            }
+            n.children().stream()
+                    .map(child -> getRectangleDepths(child, depth + 1))
+                    .forEach(list::addAll);
         }
         return list;
     }

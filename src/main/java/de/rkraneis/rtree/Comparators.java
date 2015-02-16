@@ -4,10 +4,12 @@ import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
+import static java.lang.Float.compare;
+import static java.lang.Double.compare;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 /**
  * Utility functions asociated with {@link Comparator}s, especially for use with
@@ -20,18 +22,14 @@ public final class Comparators {
         // prevent instantiation
     }
 
-    public static final Comparator<ListPair<?>> overlapListPairComparator = toComparator(Functions.overlapListPair);
+    public static final Comparator<ListPair<?>> overlapListPairComparator = 
+            toComparator(Functions.overlapListPair);
 
     /**
      * Compares the sum of the areas of two ListPairs.
      */
-    public static final Comparator<ListPair<?>> areaPairComparator = new Comparator<ListPair<?>>() {
-
-        @Override
-        public int compare(ListPair<?> p1, ListPair<?> p2) {
-            return ((Float) p1.areaSum()).compareTo(p2.areaSum());
-        }
-    };
+    public static final Comparator<ListPair<?>> areaPairComparator = 
+            (p1, p2) -> compare(p1.areaSum(), p2.areaSum());
 
     /**
      * Returns a {@link Comparator} that is a normal Double comparator for the
@@ -58,48 +56,20 @@ public final class Comparators {
     }
 
     public static Comparator<HasGeometry> areaComparator(final Rectangle r) {
-        return new Comparator<HasGeometry>() {
-
-            @Override
-            public int compare(HasGeometry g1, HasGeometry g2) {
-                return ((Float) g1.geometry().mbr().add(r).area()).compareTo(g2.geometry().mbr()
-                        .add(r).area());
-            }
-        };
-    }
-
-    public static <R, T extends Comparable<T>> Comparator<R> toComparator(final Function<R, T> function) {
-        return new Comparator<R>() {
-
-            @Override
-            public int compare(R g1, R g2) {
-                return function.apply(g1).compareTo(function.apply(g2));
-            }
-        };
+        return (g1, g2) -> compare(
+                g1.geometry().mbr().add(r).area(),
+                g2.geometry().mbr().add(r).area());
     }
     
-    public static <R, T extends Comparable<Double>> Comparator<R> toComparator(final ToDoubleFunction<R> function) {
-        return new Comparator<R>() {
-
-            @Override
-            public int compare(R g1, R g2) {
-                return Double.compare(function.applyAsDouble(g1), function.applyAsDouble(g2));
-            }
-        };
+    public static <R, T extends Comparable<Double>> Comparator<R> toComparator(final ToDoubleFunction<R> f) {
+        return (r1, r2) -> compare(f.applyAsDouble(r1), f.applyAsDouble(r2));
     }
 
     public static <T> Comparator<T> compose(final Comparator<T>... comparators) {
-        return new Comparator<T>() {
-            @Override
-            public int compare(T t1, T t2) {
-                for (Comparator<T> comparator : comparators) {
-                    int value = comparator.compare(t1, t2);
-                    if (value != 0)
-                        return value;
-                }
-                return 0;
-            }
-        };
+        return (t1, t2) -> Stream.of(comparators)
+                .mapToInt(c -> c.compare(t1, t2))
+                .filter(v -> v != 0)
+                .findFirst().orElse(0);
     }
 
     /**
@@ -108,7 +78,7 @@ public final class Comparators {
      * methods. For example:
      * </p>
      * <p>
-     * <code>search(100).toSortedList(ascendingDistance(r))</code>
+     * <code>search(100).sorted(ascendingDistance(r))</code>
      * </p>
      * 
      * @param <T>
@@ -121,12 +91,9 @@ public final class Comparators {
      */
     public static <T, S extends Geometry> Comparator<Entry<T, S>> ascendingDistance(
             final Rectangle r) {
-        return new Comparator<Entry<T, S>>() {
-            @Override
-            public int compare(Entry<T, S> e1, Entry<T, S> e2) {
-                return ((Double) e1.geometry().distance(r)).compareTo(e2.geometry().distance(r));
-            }
-        };
+        return (e1, e2) -> compare(
+                e1.geometry().distance(r),
+                e2.geometry().distance(r));
     }
 
 }

@@ -6,19 +6,15 @@ import static de.rkraneis.rtree.geometry.Geometries.rectangle;
 import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.Point;
 import de.rkraneis.rtree.geometry.Rectangle;
+import java.util.ArrayList;
 import java.util.Arrays;
+import static java.util.Arrays.asList;
 import java.util.Optional;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.function.ToDoubleBiFunction;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**
@@ -287,7 +283,7 @@ public final class RTree<T, S extends Geometry> {
                     maxChildren = of(MAX_CHILDREN_DEFAULT_GUTTMAN);
             if (!minChildren.isPresent())
                 minChildren = of((int) Math.round(maxChildren.get() * DEFAULT_FILLING_FACTOR));
-            return new RTree<T, S>(new Context(minChildren.get(), maxChildren.get(), selector,
+            return new RTree<>(new Context(minChildren.get(), maxChildren.get(), selector,
                     splitter));
         }
 
@@ -308,12 +304,12 @@ public final class RTree<T, S extends Geometry> {
             if (nodes.size() == 1)
                 node = nodes.get(0);
             else {
-                node = new NonLeaf<T, S>(nodes, context);
+                node = new NonLeaf<>(nodes, context);
             }
-            return new RTree<T, S>(node, size + 1, context);
+            return new RTree<>(node, size + 1, context);
         } else
-            return new RTree<T, S>(
-                    new Leaf<T, S>(Arrays.asList((Entry<T, S>) entry), context), size + 1,
+            return new RTree<>(
+                    new Leaf<>(new ArrayList<Entry<T, S>>(asList((Entry<T, S>) entry)), context), size + 1,
                     context);
     }
 
@@ -347,7 +343,7 @@ public final class RTree<T, S extends Geometry> {
     }
 
     /**
-     * Returns the Observable sequence of trees created by progressively adding
+     * Returns the stream of trees created by progressively adding
      * entries.
      * 
      * @param entries
@@ -355,13 +351,14 @@ public final class RTree<T, S extends Geometry> {
      * @return a sequence of trees
      */
     public Stream<RTree<T, S>> add(Stream<Entry<T, S>> entries) {
-        return Stream.concat(Stream.of(this), entries.reduce(Stream.of(this),
+        return Stream.concat(Stream.of(this), entries.reduce(
+                Stream.of(this),
                 (stream, entry) -> stream.map(tree -> tree.add(entry)),
                 Stream::concat));
     }
 
     /**
-     * Returns the Observable sequence of trees created by progressively
+     * Returns the stream of trees created by progressively
      * deleting entries.
      * 
      * @param entries
@@ -371,8 +368,9 @@ public final class RTree<T, S extends Geometry> {
      * @return a sequence of trees
      */
     public Stream<RTree<T, S>> delete(Stream<Entry<T, S>> entries, final boolean all) {
-        return Stream.concat(Stream.of(this), entries.reduce(Stream.of(this), 
-                (stream, entry) -> stream.map(tree -> tree.delete(entry)), 
+        return Stream.concat(Stream.of(this), entries.reduce(
+                Stream.of(this),
+                (stream, entry) -> stream.map(tree -> tree.delete(entry, all)),
                 Stream::concat));
     }
 
@@ -465,7 +463,7 @@ public final class RTree<T, S extends Geometry> {
             if (nodeAndEntries.node().isPresent() && nodeAndEntries.node().get() == root.get())
                 return this;
             else
-                return new RTree<T, S>(nodeAndEntries.node(), size - nodeAndEntries.countDeleted()
+                return new RTree<>(nodeAndEntries.node(), size - nodeAndEntries.countDeleted()
                         - nodeAndEntries.entriesToAdd().size(), context).add(nodeAndEntries
                         .entriesToAdd());
         } else
@@ -493,7 +491,7 @@ public final class RTree<T, S extends Geometry> {
 
     /**
      * <p>
-     * Returns an Observable sequence of {@link Entry} that satisfy the given
+     * Returns an stream of {@link Entry} that satisfy the given
      * condition. Note that this method is well-behaved only if:
      * </p>
      * 
@@ -502,12 +500,12 @@ public final class RTree<T, S extends Geometry> {
      * <p>
      * <code>distance(g) &lt; sD</code> is an example of such a condition.
      * </p>
+     * <p><em>Note:</em> visibility increased for testing.</p>
      * 
      * @param condition
      *            return Entries whose geometry satisfies the given condition
      * @return sequence of matching entries
      */
-    //@VisibleForTesting
     Stream<Entry<T, S>> search(Predicate<? super Geometry> condition) {
         if (root.isPresent())
             return root.get().search(condition);
@@ -774,7 +772,7 @@ public final class RTree<T, S extends Geometry> {
         StringBuilder s = new StringBuilder();
         if (node instanceof NonLeaf) {
             s.append(margin);
-            s.append("mbr=" + node.geometry());
+            s.append("mbr=").append(node.geometry());
             s.append('\n');
             NonLeaf<T, S> n = (NonLeaf<T, S>) node;
             for (Node<T, S> child : n.children()) {

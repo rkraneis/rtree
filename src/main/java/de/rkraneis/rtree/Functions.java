@@ -1,5 +1,6 @@
 package de.rkraneis.rtree;
 
+import de.rkraneis.rtree.geometry.Geometry;
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.rtree.geometry.Rectangle;
@@ -25,13 +26,11 @@ public final class Functions {
             final List<? extends HasGeometry> list) {
         return g -> {
             Rectangle gPlusR = g.geometry().mbr().add(r);
-            double m = 0;
-            for (HasGeometry other : list) {
-                if (other != g) {
-                    m += gPlusR.intersectionArea(other.geometry().mbr());
-                }
-            }
-            return m;
+            return list.stream()
+                    .filter(other -> other != g)
+                    .map(HasGeometry::geometry).map(Geometry::mbr)
+                    .mapToDouble(gPlusR::intersectionArea)
+                    .sum();
         };
     }
 

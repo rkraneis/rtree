@@ -59,23 +59,21 @@ public final class Util {
     }
 
     static <T> List<T> add(List<T> list, T element) {
-        final ArrayList<T> result = new ArrayList<T>(list.size() + 2);
+        final ArrayList<T> result = new ArrayList<>(list.size() + 2);
         result.addAll(list);
         result.add(element);
         return result;
     }
 
     static <T> List<T> remove(List<? extends T> list, List<? extends T> elements) {
-        final ArrayList<T> result = new ArrayList<T>(list);
+        final ArrayList<T> result = new ArrayList<>(list);
         result.removeAll(elements);
         return result;
     }
 
     static <T> List<? extends T> replace(List<? extends T> list, T element, List<T> replacements) {
-        List<T> list2 = new ArrayList<T>(list.size() + replacements.size());
-        for (T node : list)
-            if (node != element)
-                list2.add(node);
+        List<T> list2 = new ArrayList<>(list.size() + replacements.size());
+        list.stream().filter(node -> node != element).forEach(list2::add);
         list2.addAll(replacements);
         return list2;
     }

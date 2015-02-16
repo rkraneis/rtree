@@ -86,12 +86,6 @@
     </scm>
 
     <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -101,10 +95,17 @@
         </dependency>
 
         <dependency>
-        	<groupId>com.github.davidmoten</groupId>
-        	<artifactId>grumpy-core</artifactId>
-        	<version>0.2.2</version>
-        	<scope>test</scope>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>grumpy-core</artifactId>
+            <version>0.2.2</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -161,6 +162,11 @@
                                         <argument>3</argument>
                                         <argument>-jvmArgs</argument>
                                         <argument>-Xmx512m</argument>
+                                        <!--
+                                        <argument>-prof</argument>
+                                        <argument>stack</argument>
+                                        <argument>.*BenchmarksRTree.defaultRTreeSearchOf1000PointsMaxChildren004</argument>
+                                        -->
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -225,7 +231,7 @@
                     <aggregate>false</aggregate>
                     <instrumentation>
                         <excludes>
-                            <exclude>com/github/davidmoten/rtree/ImageSaver.class</exclude>
+                            <exclude>de/rkraneis/rtree/ImageSaver.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>
@@ -237,7 +243,7 @@
         <outputDirectory>${project.build.directory}/site</outputDirectory>
         <plugins>
             <!-- this one should go first so that it is available to other plugins 
-                when they run -->
+            when they run -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
@@ -312,8 +318,8 @@
             </plugin>
             <!-- commented this plugin out because cannot run offline (e.g. at home) -->
             <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-changelog-plugin</artifactId> 
-                <version>${changelog.version}</version> <configuration> <username>${svn.username}</username> 
-                <password>${svn.password}</password> </configuration> </plugin> -->
+            <version>${changelog.version}</version> <configuration> <username>${svn.username}</username> 
+            <password>${svn.password}</password> </configuration> </plugin> -->
         </plugins>
     </reporting>
 

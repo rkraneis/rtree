@@ -3,14 +3,15 @@ package de.rkraneis.rtree;
 import de.rkraneis.rtree.geometry.HasGeometry;
 import de.rkraneis.rtree.geometry.ListPair;
 import de.rkraneis.util.Preconditions;
+import static java.lang.Float.compare;
 import java.util.ArrayList;
 import java.util.Arrays;
+import static java.util.Arrays.asList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.ToDoubleFunction;
 
 public final class SplitterRStar implements Splitter {
 
@@ -28,7 +29,7 @@ public final class SplitterRStar implements Splitter {
         // sort nodes into increasing x, calculate min overlap where both groups
         // have more than minChildren
 
-        Map<SortType, List<ListPair<T>>> map = new HashMap<SortType, List<ListPair<T>>>(5, 1.0f);
+        Map<SortType, List<ListPair<T>>> map = new HashMap<>(5, 1.0f);
         map.put(SortType.X_LOWER, getPairs(minSize, sort(items, INCREASING_X_LOWER)));
         map.put(SortType.X_UPPER, getPairs(minSize, sort(items, INCREASING_X_UPPER)));
         map.put(SortType.Y_LOWER, getPairs(minSize, sort(items, INCREASING_Y_LOWER)));
@@ -47,28 +48,24 @@ public final class SplitterRStar implements Splitter {
         X_LOWER, X_UPPER, Y_LOWER, Y_UPPER;
     }
 
-    private static final List<SortType> sortTypes = Collections.unmodifiableList(Arrays
-            .asList(SortType.values()));
+    private static final List<SortType> sortTypes = Collections.unmodifiableList(
+            asList(SortType.values()));
 
     private static <T extends HasGeometry> Comparator<SortType> marginSumComparator(
             final Map<SortType, List<ListPair<T>>> map) {
-        return Comparators.toComparator(
-                (SortType sortType) -> marginValueSum(map.get(sortType)));
+        return Comparators.toComparator(sortType -> marginValueSum(map.get(sortType)));
     }
 
     private static <T extends HasGeometry> float marginValueSum(List<ListPair<T>> list) {
-        float sum = 0;
-        for (ListPair<T> p : list)
-            sum += p.marginSum();
-        return sum;
+        return (float) list.stream().mapToDouble(ListPair::marginSum).sum();
     }
 
     private static <T extends HasGeometry> List<ListPair<T>> getPairs(int minSize, List<T> list) {
-        List<ListPair<T>> pairs = new ArrayList<ListPair<T>>(list.size() - 2 * minSize + 1);
+        List<ListPair<T>> pairs = new ArrayList<>(list.size() - 2 * minSize + 1);
         for (int i = minSize; i < list.size() - minSize; i++) {
             List<T> list1 = list.subList(0, i);
             List<T> list2 = list.subList(i, list.size());
-            ListPair<T> pair = new ListPair<T>(list1, list2);
+            ListPair<T> pair = new ListPair<>(list1, list2);
             pairs.add(pair);
         }
         return pairs;
@@ -76,41 +73,21 @@ public final class SplitterRStar implements Splitter {
 
     private static <T extends HasGeometry> List<T> sort(List<T> items,
             Comparator<HasGeometry> comparator) {
-        ArrayList<T> list = new ArrayList<T>(items);
+        ArrayList<T> list = new ArrayList<>(items);
         Collections.sort(list, comparator);
         return list;
     }
 
-    private static Comparator<HasGeometry> INCREASING_X_LOWER = new Comparator<HasGeometry>() {
+    private static Comparator<HasGeometry> INCREASING_X_LOWER = (n1, n2) -> 
+            compare(n1.geometry().mbr().x1(), n2.geometry().mbr().x1());
 
-        @Override
-        public int compare(HasGeometry n1, HasGeometry n2) {
-            return ((Float) n1.geometry().mbr().x1()).compareTo(n2.geometry().mbr().x1());
-        }
-    };
+    private static Comparator<HasGeometry> INCREASING_X_UPPER = (n1, n2) -> 
+            compare(n1.geometry().mbr().x2(), n2.geometry().mbr().x2());
 
-    private static Comparator<HasGeometry> INCREASING_X_UPPER = new Comparator<HasGeometry>() {
+    private static Comparator<HasGeometry> INCREASING_Y_LOWER = (n1, n2) -> 
+            compare(n1.geometry().mbr().y1(), n2.geometry().mbr().y1());
 
-        @Override
-        public int compare(HasGeometry n1, HasGeometry n2) {
-            return ((Float) n1.geometry().mbr().x2()).compareTo(n2.geometry().mbr().x2());
-        }
-    };
-
-    private static Comparator<HasGeometry> INCREASING_Y_LOWER = new Comparator<HasGeometry>() {
-
-        @Override
-        public int compare(HasGeometry n1, HasGeometry n2) {
-            return ((Float) n1.geometry().mbr().y1()).compareTo(n2.geometry().mbr().y1());
-        }
-    };
-
-    private static Comparator<HasGeometry> INCREASING_Y_UPPER = new Comparator<HasGeometry>() {
-
-        @Override
-        public int compare(HasGeometry n1, HasGeometry n2) {
-            return ((Float) n1.geometry().mbr().y2()).compareTo(n2.geometry().mbr().y2());
-        }
-    };
+    private static Comparator<HasGeometry> INCREASING_Y_UPPER = (n1, n2) -> 
+            compare(n1.geometry().mbr().y2(), n2.geometry().mbr().y2());
 
 }

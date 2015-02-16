@@ -6,7 +6,6 @@ import de.rkraneis.rtree.geometry.Rectangle;
 import de.rkraneis.util.Pair;
 import de.rkraneis.util.Preconditions;
 import java.util.ArrayList;
-import java.util.Arrays;
 import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +32,7 @@ public final class SplitterQuadratic implements Splitter {
         final List<T> group1 = new ArrayList(asList(worstCombination.value1()));
         final List<T> group2 = new ArrayList(asList(worstCombination.value2()));
 
-        final List<T> remaining = new ArrayList<T>(items);
+        final List<T> remaining = new ArrayList<>(items);
         remaining.remove(worstCombination.value1());
         remaining.remove(worstCombination.value2());
 
@@ -44,7 +43,7 @@ public final class SplitterQuadratic implements Splitter {
         while (remaining.size() > 0) {
             assignRemaining(group1, group2, remaining, minGroupSize);
         }
-        return new ListPair<T>(group1, group2);
+        return new ListPair<>(group1, group2);
     }
 
     private <T extends HasGeometry> void assignRemaining(final List<T> group1,
@@ -102,9 +101,9 @@ public final class SplitterQuadratic implements Splitter {
             }
         }
         if (e1.isPresent())
-            return new Pair<T>(e1.get(), e2.get());
+            return new Pair<>(e1.get(), e2.get());
         else
             // all items are the same item
-            return new Pair<T>(items.get(0), items.get(1));
+            return new Pair<>(items.get(0), items.get(1));
     }
 }
